@@ -21,6 +21,9 @@ If, `include-me.html` looked like this:
 Then, a document like this:
 
 ```
+<head>
+	<script src="csi.js"></script>
+</head>
 <body>
 
 <div data-include="include-me.html"></div>

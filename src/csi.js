@@ -44,36 +44,15 @@ var csi = {
 		if ( fnProgress ) fnProgress( "csi: exiting loadAllIncludes()..." );
 	},
 	loadFragment: function(el, url, replaceWithin, fnLoaded) {
-			var localTest = /^(?:file):/,
-			xmlhttp = new XMLHttpRequest(),
-			status = 0;
-
-		xmlhttp.onreadystatechange = function() {
-			/* if we are on a local protocol, and we have response text, we'll assume
-			 * things were sucessful */
-			if (xmlhttp.readyState == 4) {
-				status = xmlhttp.status;
+		sendHTTPRequest( url, null, function(req){
+			if ( replaceWithin == "true" ) {
+				el.innerHTML = req.responseText;
 			}
-			if (localTest.test(location.href) && xmlhttp.responseText) {
-				status = 200;
+			else {
+				el.outerHTML = req.responseText;
 			}
-			if (xmlhttp.readyState == 4 && status == 200) {
-				if ( replaceWithin == "true" ) {
-					el.innerHTML = xmlhttp.responseText;
-				}
-				else {
-					el.outerHTML = xmlhttp.responseText;
-				}
-				fnLoaded();
-			}
-		}
-
-		try {
-			xmlhttp.open("GET", url, true);
-			xmlhttp.send();
-		} catch(err) {
-			/* todo catch error */
-		}
+			fnLoaded();
+		});
 	},
 	// get element's attribute or default value if attribute isn't set
 	getAttribute: function( el, attributeName, defaultValue ) {
@@ -87,3 +66,63 @@ var csi = {
 		return value;
 	}
 };
+
+function sendHTTPRequest(url,postData,callback) {
+    var req = createXMLHTTPObject();
+    if (req)
+    {
+		var localTest = /^(?:file):/
+		var status;
+		var method = (postData) ? "POST" : "GET";
+
+		req.onreadystatechange = function ()
+			{
+				if (req.readyState == 4) {
+					status = req.status;
+				}
+				if (localTest.test(location.href) && req.responseText) {
+					status = 200;
+				}
+				if (req.readyState == 4 && status == 200) {
+					callback(req);
+				}
+			};
+
+		try {
+			req.open(method,url,true);
+			// req.setRequestHeader('User-Agent','XMLHTTP/1.0');
+			if (postData)
+				req.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+			req.send(postData);
+		}
+		catch(err) {
+			console.log("Exception occurred when CSI loaded \"" + url + "\"");
+			if ( err.message ) console.log(err.message);
+			console.log(err);
+		}
+	}
+} // sendHTTPRequest()
+
+var XMLHttpFactories = [
+    { name: "Microsoft.XMLHTTP", fnNew: function () {return new ActiveXObject("Microsoft.XMLHTTP")} },
+    { name: "Msxml2.XMLHTTP",    fnNew: function () {return new ActiveXObject("Msxml2.XMLHTTP")} },
+    { name: "Msxml3.XMLHTTP",    fnNew: function () {return new ActiveXObject("Msxml3.XMLHTTP")} },
+    { name: "XMLHttpRequest",    fnNew: function () {return new XMLHttpRequest()} }
+];
+
+function createXMLHTTPObject() {
+    var xmlhttp = false;
+    var xmlhttpname = "";
+	for (var i=0;i<XMLHttpFactories.length;i++) {
+		try {
+			xmlhttpname = XMLHttpFactories[i].name;
+			xmlhttp = XMLHttpFactories[i].fnNew();
+		}
+		catch (e) {
+			continue;
+		}
+		break;
+	}
+    console.log("new HTTP request: " + xmlhttpname);
+    return xmlhttp;
+}
