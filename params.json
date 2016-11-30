@@ -1,0 +1,6 @@
+{
+  "name": "Csi.js",
+  "tagline": "Client-side includes via JavaScript",
+  "body": "### About\r\nCSI.js implements client-side includes for JavaScript which is a great way to partition your site into reusable chunks of content.\r\n\r\n### Authors and Contributors\r\nForked by @jones1618 from a project by @LexmarkWeb\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
